@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+  <link href="image.png" rel="stylesheet">
+  <link rel="icon" href="" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Data Extractor</title> 
+</head>
+<body>
+  <h2>📈 Graph Data Extractor</h2>
+  <form id="uploadForm">
+    <label>Upload Graph Image:</label>
+    <input type="file" name="image" accept="image/*" required>
+
+    <label>Select Line Color:</label>
+    <select name="color">
+      <option value="magenta">Magenta</option>
+      <option value="red">Red</option>
+      <option value="blue">Blue</option>
+      <option value="green">Green</option>
+      <option value="cyan">Cyan</option>
+      <option value="yellow">Yellow</option>
+    </select>
+
+    <label>X max (Time):</label>
+    <input type="number" name="x_max" value="1200" step="1">
+
+    <label>Y max (PHY):</label>
+    <input type="number" name="y_max" value="1250" step="1">
+
+    <button type="submit">Extract Data</button>
+  </form>
+
+  <p id="status"></p>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.textContent = "Processing...";
+
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch('http://127.0.0.1:5000/process', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          status.textContent = "Error: " + error.error;
+          return;
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "extracted_graph_data.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+        status.textContent = "✅ Data extracted successfully!";
+      } catch (err) {
+        status.textContent = "❌ An error occurred.";
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
